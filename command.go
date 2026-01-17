@@ -11,7 +11,7 @@ import (
 type cliCommand struct {
 	name 		string
 	description	string
-	callback	func(*Config) error
+	callback	func(*Config, ...string) error
 } 
 
 type Config struct {
@@ -21,7 +21,7 @@ type Config struct {
 
 var cache = pokecache.NewCache(time.Second * 5)
 
-func commandHelp(cfg *Config) error {
+func commandHelp(cfg *Config, args ...string) error {
 	fmt.Println("Welcome to the Pokedex!")
 	fmt.Println("Usage:")
 	fmt.Println()
@@ -32,13 +32,13 @@ func commandHelp(cfg *Config) error {
 	return nil
 }
 
-func commandExit(cfg *Config) error {
+func commandExit(cfg *Config, args ...string) error {
 	fmt.Println("Closing the Pokedex... Goodbye!")
 	os.Exit(0)
 	return nil
 }
 
-func commandMap(cfg *Config) error {
+func commandMap(cfg *Config, args ...string) error {
 	url := "https://pokeapi.co/api/v2/location-area"
 	if cfg.Next != nil {
 		url = *cfg.Next
@@ -61,10 +61,9 @@ func commandMap(cfg *Config) error {
 
 }
 
-func commandMapb(cfg *Config) error {
+func commandMapb(cfg *Config, args ...string) error {
 	if cfg.Previous == nil {
-		fmt.Println("you're on the first page")
-		return nil
+		return fmt.Errorf("you're on the first page")
 	} 
 
 	url := *cfg.Previous
@@ -85,8 +84,36 @@ func commandMapb(cfg *Config) error {
 	return nil
 }
 
+func commandExplore(cfg *Config, args ...string) error {
+	if len(args) != 1 {
+		return fmt.Errorf("Argument must be specified")
+	}
+
+	commandArgs := args[0]
+	baseUrl := "https://pokeapi.co/api/v2/location-area/"
+
+	pokemon, err := getPokemonLocation(commandArgs, baseUrl, cache)
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("Exploring %s...\n", args[0])
+	fmt.Println("Found Pokemon:")
+
+	for _,value := range pokemon.PokemonEncounter {
+		fmt.Printf("- %s\n", value.Pokemon.Name)
+	}
+
+	return nil
+}
+
 func getCommands() map[string]cliCommand {
 	return map[string]cliCommand{
+		"explore": {
+			name: "explore",
+			description: "List all of the pokemon based on the specified location",
+			callback: commandExplore,
+		},
 		"map": {
 			name: "map",
 			description: "Displays the names of 20 location areas in the Pokemon world. Each subsequent call to map should display the next 20 locations, and so on.",

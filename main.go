@@ -20,14 +20,21 @@ func main() {
 			continue
 		}
 
-		cmd, ok := getCommands()[command[0]]
+		cmdName := command[0]
+		args := []string{}
+
+		if len(command) > 1 {
+			args = command[1:]
+		}
+
+		cmd, ok := getCommands()[cmdName]
 		if !ok {
 			fmt.Println("Unknown command")
-		} else {
-			err := cmd.callback(cfg)
-			if err != nil {
-				fmt.Println(err)
-			}
+		} 
+
+		err := cmd.callback(cfg, args...)
+		if err != nil {
+			fmt.Println(err)
 		}
 	}
 }

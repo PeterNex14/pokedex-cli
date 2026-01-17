@@ -17,6 +17,15 @@ type ListLocation struct {
 	}	`json:"results"`
 }
 
+type PokemonLocation struct {
+	PokemonEncounter		[]struct {
+		Pokemon			struct {
+			Name		string			`json:"name"`
+			Url 		string			`json:"url"`
+		}	`json:"pokemon"`
+	}	`json:"pokemon_encounters"`
+}
+
 
 
 func  getLocationArea(baseUrl string, c *pokecache.Cache) (ListLocation, error) {
@@ -33,7 +42,6 @@ func  getLocationArea(baseUrl string, c *pokecache.Cache) (ListLocation, error) 
 	}
 	
 	res, err := http.Get(baseUrl)
-
 	if err != nil {
 		return listLocation,  err
 	}
@@ -41,7 +49,6 @@ func  getLocationArea(baseUrl string, c *pokecache.Cache) (ListLocation, error) 
 	defer res.Body.Close()
 
 	data, err := io.ReadAll(res.Body)
-
 	if err != nil {
 		return listLocation, err
 	}
@@ -51,7 +58,43 @@ func  getLocationArea(baseUrl string, c *pokecache.Cache) (ListLocation, error) 
 	}
 
 	c.Add(baseUrl, data)
-
 	return listLocation, nil
 
+}
+
+
+func getPokemonLocation(location, baseUrl string, c *pokecache.Cache) (PokemonLocation, error) {
+	fullUrl := baseUrl + location
+	reqCache, ok := c.Get(fullUrl)
+	var pokemonLocation PokemonLocation
+
+	if ok {
+		err := json.Unmarshal(reqCache, &pokemonLocation)
+		if err != nil {
+			return pokemonLocation, err
+		}
+
+		return pokemonLocation, nil
+	}
+
+
+	res, err := http.Get(fullUrl)
+	if err != nil {
+		return pokemonLocation, err
+	}
+
+	defer res.Body.Close()
+
+	data, err := io.ReadAll(res.Body)
+	if err != nil {
+		return pokemonLocation, err
+	}
+
+	if err := json.Unmarshal(data, &pokemonLocation); err != nil {
+		return pokemonLocation, err
+	}
+
+	c.Add(fullUrl, data)
+
+	return pokemonLocation, nil
 }
