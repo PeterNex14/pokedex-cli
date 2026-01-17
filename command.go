@@ -3,6 +3,9 @@ package main
 import (
 	"fmt"
 	"os"
+	"time"
+
+	"github.com/PeterNex14/pokedex-cli/internal/pokecache"
 )
 
 type cliCommand struct {
@@ -15,6 +18,8 @@ type Config struct {
 	Next 		*string
 	Previous 	*string
 }
+
+var cache = pokecache.NewCache(time.Second * 5)
 
 func commandHelp(cfg *Config) error {
 	fmt.Println("Welcome to the Pokedex!")
@@ -39,7 +44,7 @@ func commandMap(cfg *Config) error {
 		url = *cfg.Next
 	}
 
-	locations, err := getLocationArea(url)
+	locations, err := getLocationArea(url, cache)
 
 	if err != nil {
 		return err
@@ -64,7 +69,7 @@ func commandMapb(cfg *Config) error {
 
 	url := *cfg.Previous
 
-	locations, err := getLocationArea(url)
+	locations, err := getLocationArea(url, cache)
 
 	if err != nil {
 		return err
