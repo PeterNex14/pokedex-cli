@@ -136,8 +136,42 @@ func commandCatch(cfg *Config, args ...string) error {
 	return nil
 }
 
+func commandInspect(cfg *Config, args ...string) error {
+	if len(args) != 1 {
+		return fmt.Errorf("Argument must be specified")
+	}
+
+	commandArgs := args[0]
+
+	data, ok := cfg.pokedex[commandArgs]
+	if !ok {
+		fmt.Println("you have not caught that pokemon")
+		return nil
+	} 
+
+	fmt.Printf("Name: %s\n", data.Name)
+	fmt.Printf("Height: %d\n", data.Height)
+	fmt.Printf("Weight: %d\n", data.Weight)
+	fmt.Println("Stats:")
+	for _, value := range data.Stats {
+		fmt.Printf("-%s: %d\n", value.Stat.Name, value.BaseStat)
+	}
+	fmt.Println("Types:")
+	for _, value := range data.Types {
+		fmt.Printf("- %s\n", value.Type.Name)
+	}
+
+	return nil
+	
+}
+
 func getCommands() map[string]cliCommand {
 	return map[string]cliCommand{
+		"inspect": {
+			name: "inspect",
+			description: "List of pokemon details",
+			callback: commandInspect,
+		},
 		"catch" : {
 			name: "catch",
 			description: "Catch Pokemon based on the given name of pokemon",
