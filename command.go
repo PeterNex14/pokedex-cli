@@ -133,6 +133,7 @@ func commandCatch(cfg *Config, args ...string) error {
 
 	fmt.Printf("%s was caught!\n", pokemon.Name)
 	cfg.pokedex[pokemon.Name] = pokemon
+	fmt.Println("You may now inspect it with the inspect command.")
 	return nil
 }
 
@@ -165,8 +166,26 @@ func commandInspect(cfg *Config, args ...string) error {
 	
 }
 
+func commandPokedex(cfg *Config, args ...string) error {
+	if len(cfg.pokedex) == 0 {
+		fmt.Println("You haven't caught any pokemon yet")
+		return nil
+	}
+
+	for _, v := range cfg.pokedex {
+		fmt.Println("- ", v.Name)
+	}
+	
+	return nil
+}
+
 func getCommands() map[string]cliCommand {
 	return map[string]cliCommand{
+		"pokedex": {
+			name: "pokedex",
+			description: "get pokemon that has been caught",
+			callback: commandPokedex,
+		},
 		"inspect": {
 			name: "inspect",
 			description: "List of pokemon details",
