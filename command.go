@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 	"time"
-
+	"math/rand"
 	"github.com/PeterNex14/pokedex-cli/internal/pokecache"
 )
 
@@ -17,6 +17,7 @@ type cliCommand struct {
 type Config struct {
 	Next 		*string
 	Previous 	*string
+	pokedex 	map[string]Pokemon
 }
 
 var cache = pokecache.NewCache(time.Second * 5)
@@ -107,8 +108,41 @@ func commandExplore(cfg *Config, args ...string) error {
 	return nil
 }
 
+func commandCatch(cfg *Config, args ...string) error {
+	if len(args) != 1 {
+		return fmt.Errorf("Argument must be specified")
+	}
+
+	commandArgs := args[0]
+	baseUrl := "https://pokeapi.co/api/v2/pokemon/"
+
+	pokemon, err := getPokemon(commandArgs, baseUrl)
+
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("Throwing a Pokeball at %s...\n", commandArgs)
+	
+	num := rand.Intn(100)
+	chance := 100 - (pokemon.BaseExperience / 10)
+
+	if num < chance {
+		fmt.Printf("%s was caught!\n", pokemon.Name)
+		cfg.pokedex[pokemon.Name] = pokemon
+	} else {
+		fmt.Printf("%s escaped!\n", pokemon.Name)
+	}
+	return nil
+}
+
 func getCommands() map[string]cliCommand {
 	return map[string]cliCommand{
+		"catch" : {
+			name: "catch",
+			description: "Catch Pokemon based on the given name of pokemon",
+			callback: commandCatch,
+		},
 		"explore": {
 			name: "explore",
 			description: "List all of the pokemon based on the specified location",

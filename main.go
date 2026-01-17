@@ -8,7 +8,9 @@ import (
 
 func main() {
 	scanner := bufio.NewScanner(os.Stdin)
-	cfg := &Config{}
+	cfg := &Config{
+		pokedex: make(map[string]Pokemon),
+	}
 
 	for {
 		fmt.Print("Pokedex > ")

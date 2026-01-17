@@ -26,9 +26,14 @@ type PokemonLocation struct {
 	}	`json:"pokemon_encounters"`
 }
 
+type Pokemon struct {
+	Name			string		`json:"name"`
+	BaseExperience 	int			`json:"base_experience"`
+}
 
 
-func  getLocationArea(baseUrl string, c *pokecache.Cache) (ListLocation, error) {
+
+func getLocationArea(baseUrl string, c *pokecache.Cache) (ListLocation, error) {
 	reqCache, ok := c.Get(baseUrl)
 	var listLocation ListLocation
 
@@ -97,4 +102,28 @@ func getPokemonLocation(location, baseUrl string, c *pokecache.Cache) (PokemonLo
 	c.Add(fullUrl, data)
 
 	return pokemonLocation, nil
+}
+
+
+func getPokemon(pokemon, baseUrl string) (Pokemon, error) {
+	fullUrl := baseUrl + pokemon
+	var poke Pokemon
+
+	res, err := http.Get(fullUrl)
+	if err != nil {
+		return poke, err
+	}
+
+	defer res.Body.Close()
+
+	data, err := io.ReadAll(res.Body)
+	if err != nil {
+		return poke, err
+	}
+
+	if err := json.Unmarshal(data, &poke); err != nil {
+		return poke, err
+	}
+
+	return poke, nil
 }
